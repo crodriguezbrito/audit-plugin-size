@@ -89,9 +89,55 @@ jobs:
             echo "total_size_human=${TOTAL_SIZE_HUMAN}"
           } >> "${GITHUB_OUTPUT}"
 
+      # -------------------------------------------------------
+      # Calculate Total plugin size from the base branch for comparison
+      # -------------------------------------------------------
+      - name: Checkout Base Branch
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          persist-credentials: false
+      - name: Prepare base branch files
+        if: github.event_name == 'pull_request'
+        env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
+        run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST"
+      - name: Calculate Base Branch Plugin Size
+        if: github.event_name == 'pull_request'
+        id: base_plugin_size
+        run: |
+          BASE_TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
+          BASE_TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${BASE_TOTAL_SIZE_BYTES}")
+          {
+            echo "base_total_size_bytes=${BASE_TOTAL_SIZE_BYTES}"
+            echo "base_total_size_human=${BASE_TOTAL_SIZE_HUMAN}"
+          } >> "${GITHUB_OUTPUT}"
+      - name: Compare Plugin Sizes
+        if: github.event_name == 'pull_request'
+        env:
+          CURRENT_SIZE_BYTES: ${{ steps.plugin_size.outputs.total_size_bytes }}
+          BASE_SIZE_BYTES: ${{ steps.base_plugin_size.outputs.base_total_size_bytes }}
+          MAX_INCREASE_PERCENT: ${{ env.MAX_SIZE_INCREASE_PERCENT }}
+        run: |
+          SIZE_DIFF=$((CURRENT_SIZE_BYTES - BASE_SIZE_BYTES))
+          if [ $BASE_SIZE_BYTES -eq 0 ]; then
+            PERCENT_INCREASE=0
+          else
+            PERCENT_INCREASE=$((SIZE_DIFF * 100 / BASE_SIZE_BYTES))
+          fi
+          echo "Size Difference (Bytes): $SIZE_DIFF"
+          echo "Percentage Increase: $PERCENT_INCREASE%"
+          if [ $PERCENT_INCREASE -gt $MAX_INCREASE_PERCENT ]; then
+            echo "Error: Plugin size increased by $PERCENT_INCREASE%, which exceeds the maximum allowed increase of $MAX_INCREASE_PERCENT%."
+            exit 1
+          fi  
+
       - name: Generate Size Audit Repository
         env:
             TOTAL_SIZE_HUMAN: ${{ steps.plugin_size.outputs.total_size_human }}
+            PERCENT_INCREASE: ${{ steps.compare_plugin_sizes.outputs.PERCENT_INCREASE }}
+            BASE_TOTAL_SIZE_HUMAN: ${{ steps.base_plugin_size.outputs.base_total_size_human }}
             
         run: |
             REPORT="final-report.md"
@@ -100,6 +146,8 @@ jobs:
               echo
               echo "### Total Plugin Size"
               echo "- Current Size: ${TOTAL_SIZE_HUMAN}"
+              echo "- Base Size: ${BASE_TOTAL_SIZE_HUMAN}"
+              echo "- Percentage Increase: ${PERCENT_INCREASE}%"
             } > "${REPORT}"
       - name: Comment PR
         if: github.event_name == 'pull_request'
