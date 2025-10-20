@@ -8,10 +8,6 @@
 .DS_Store
 .idea
 
-# PHPCS cache files
-.cache/*
-!.cache/.gitkeep
-
 # Cypress
 cypress.env.json
 /tests/cypress/screenshots
@@ -27,4 +23,3 @@ cypress.env.json
 *.log
 *.sql
 *.zip
-*.local.json
