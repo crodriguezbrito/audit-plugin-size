@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
       - 'develop'
-      
+
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
   MAX_IMAGE_SIZE_KB: 500
@@ -82,7 +82,7 @@ jobs:
       - name: Calculate Total Plugin Size
         id: plugin_size
         run: |
-          TOTAL_SIZE_BYTES=$(du -sb "${ steps.workflow.outputs.DIST }") | cut -f1)
+          TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
           TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${TOTAL_SIZE_BYTES}")
           {
             echo "total_size_bytes=${TOTAL_SIZE_BYTES}"
