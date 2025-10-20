@@ -105,7 +105,6 @@ jobs:
           REPO: ${{ github.repository }}
           PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
         run: |
-          mkdir dist
           echo "DIST=${PWD}/dist" >> "$GITHUB_OUTPUT"
           echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"    
       - name: Prepare base branch files
