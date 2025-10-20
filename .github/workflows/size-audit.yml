@@ -101,7 +101,13 @@ jobs:
           BASE_SHA=${{ github.event.pull_request.base.sha }}
           echo "BASE_SHA=$BASE_SHA" >> $GITHUB_OUTPUT
           echo "change to SHA: $BASE_SHA"
-
+      - name: Clean Working Directory (Prevent Stash/Commit Error)
+        run: |
+          # Discard all changes in tracked files
+          git reset --hard HEAD
+          # Remove untracked files and directories (-d) with force (-f)
+          git clean -df
+          echo "Working directory cleaned." 
       - name: Checkout a la Rama Base
         run: |
           git checkout ${{ steps.get_base_sha.outputs.BASE_SHA }}
