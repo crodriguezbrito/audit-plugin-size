@@ -1,0 +1,41 @@
+# Directories
+.git
+.github
+/bin
+node_modules
+/scripts
+/src
+/tests
+.cache
+
+# Files
+/.*
+cypress.config.js
+postcss.config.js
+tailwind.config.js
+webpack.config.js
+
+# File Types
+/*.json
+/*.lock
+/*.log
+/*.md
+/*.sql
+/*.tar.gz
+/*.xml
+/*.yml
+/*.zip
+/*.scss
+
+# BEGIN NEWFOLD LABS RULES
+vendor/newfold-labs/*/src
+vendor/newfold-labs/*/source
+vendor/newfold-labs/*/tests
+vendor/newfold-labs/*/.*
+vendor/newfold-labs/*/*.xml
+vendor/newfold-labs/*/*.json
+vendor/newfold-labs/*/*.lock
+vendor/newfold-labs/*/*.scss
+vendor/newfold-labs/*/*.md
+vendor/newfold-labs/*/*.config.js
+vendor/newfold-labs/*/LICENSE
