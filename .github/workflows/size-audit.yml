@@ -94,34 +94,42 @@ jobs:
       # -------------------------------------------------------
       - name: Checkout Base Branch
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Setup base branch workflow context
+        id: get_base_sha
+        run: |
+          # El SHA del último commit de la rama destino (e.g., 'main')
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          echo "BASE_SHA=$BASE_SHA" >> $GITHUB_OUTPUT
+          echo "change to SHA: $BASE_SHA"
+
+      - name: Checkout a la Rama Base
+        run: |
+          git checkout ${{ steps.get_base_sha.outputs.BASE_SHA }}
+          echo "Listo. Nos encontramos en la rama: $(git branch --show-current)"
+
+      - name: Setup workflow context for Base Branch
         id: workflow-base
+        working-directory: ${{ runner.temp }}
         env:
           REPO: ${{ github.repository }}
           PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
         run: |
-          echo "DIST_BASE=${PWD}/dist" >> "$GITHUB_OUTPUT"
-          echo "PACKAGE_BASE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"    
-      - name: Prepare base branch files
-        if: github.event_name == 'pull_request'
+          mkdir dist_base
+          echo "DIST=${PWD}/dist_base" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"
+      - name: Prepare files for Base Branch
         env:
-          DIST_BASE: ${{ steps.workflow-base.outputs.DIST_BASE }}
-        run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST_BASE"
-      - name: Calculate Base Branch Plugin Size
-        if: github.event_name == 'pull_request'
+          DIST: ${{ steps.workflow-base.outputs.DIST }}
+        run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST"  
+      - name: Calculate Total Plugin Size for Base Branch
         id: base_plugin_size
         run: |
-          BASE_TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST_BASE }}" | cut -f1)
-          BASE_TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${BASE_TOTAL_SIZE_BYTES}")
+          TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
+          TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${TOTAL_SIZE_BYTES}")
           {
-            echo "base_total_size_bytes=${BASE_TOTAL_SIZE_BYTES}"
-            echo "base_total_size_human=${BASE_TOTAL_SIZE_HUMAN}"
-          } >> "${GITHUB_OUTPUT}"
+            echo "base_total_size_bytes=${TOTAL_SIZE_BYTES}"
+            echo "base_total_size_human=${TOTAL_SIZE_HUMAN}"
+          } >> "${GITHUB_OUTPUT}" 
+          
       - name: Compare Plugin Sizes
         if: github.event_name == 'pull_request'
         env:
