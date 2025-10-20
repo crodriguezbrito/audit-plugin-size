@@ -98,16 +98,26 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           persist-credentials: false
+      - name: Setup base branch workflow context
+        id: workflow-base
+        working-directory: ${{ runner.temp }}
+        env:
+          REPO: ${{ github.repository }}
+          PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
+        run: |
+          mkdir dist
+          echo "DIST=${PWD}/dist" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"    
       - name: Prepare base branch files
         if: github.event_name == 'pull_request'
         env:
-          DIST: ${{ steps.workflow.outputs.DIST }}
+          DIST: ${{ steps.workflow-base.outputs.DIST }}
         run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST"
       - name: Calculate Base Branch Plugin Size
         if: github.event_name == 'pull_request'
         id: base_plugin_size
         run: |
-          BASE_TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
+          BASE_TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
           BASE_TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${BASE_TOTAL_SIZE_BYTES}")
           {
             echo "base_total_size_bytes=${BASE_TOTAL_SIZE_BYTES}"
