@@ -84,7 +84,7 @@ jobs:
         id: plugin_size
         run: |
           TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(du -sh "${{TOTAL_SIZE_BYTES}}" | cut -f1)")
+          TOTAL_SIZE_HUMAN=$(du -sh "${{ steps.workflow.outputs.DIST }}" | cut -f1)
           {
             echo "total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "total_size_human=${TOTAL_SIZE_HUMAN}"
@@ -135,7 +135,7 @@ jobs:
         id: base_plugin_size
         run: |
           TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(du -sh "${{TOTAL_SIZE_BYTES}}" | cut -f1)")
+          TOTAL_SIZE_HUMAN=$(du -sh "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
           {
             echo "base_total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "base_total_size_human=${TOTAL_SIZE_HUMAN}"
