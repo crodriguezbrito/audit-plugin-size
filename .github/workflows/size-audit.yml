@@ -145,15 +145,15 @@ jobs:
         id: compare_plugin_sizes
         if: github.event_name == 'pull_request'
         env:
-          CURRENT_SIZE_BYTES: ${{ steps.plugin_size.outputs.total_size_bytes }}
-          BASE_SIZE_BYTES: ${{ steps.base_plugin_size.outputs.base_total_size_bytes }}
+          CURRENT_SIZE_HUMAN: ${{ steps.plugin_size.outputs.total_size_human }}
+          BASE_SIZE_HUMAN: ${{ steps.base_plugin_size.outputs.base_total_size_human }}
           MAX_INCREASE_PERCENT: ${{ env.MAX_SIZE_INCREASE_PERCENT }}
         run: |
-          SIZE_DIFF=$((CURRENT_SIZE_BYTES - BASE_SIZE_BYTES))
-          if [ $BASE_SIZE_BYTES -eq 0 ]; then
+          SIZE_DIFF=$((CURRENT_SIZE_HUMAN - BASE_SIZE_HUMAN))
+          if [ $BASE_SIZE_HUMAN -eq 0 ]; then
             PERCENT_INCREASE=0
           else
-            PERCENT_INCREASE=$((SIZE_DIFF * 100 / BASE_SIZE_BYTES))
+            PERCENT_INCREASE=$((SIZE_DIFF * 100 / BASE_SIZE_HUMAN))
           fi
           echo "Size Difference (Bytes): $SIZE_DIFF"
           echo "Percentage Increase: $PERCENT_INCREASE%"
