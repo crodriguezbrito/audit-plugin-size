@@ -97,10 +97,10 @@ jobs:
         if: github.event_name == 'pull_request'
         id: get_base_sha
         run: |
-          # El SHA del último commit de la rama destino (e.g., 'main')
           BASE_SHA=${{ github.event.pull_request.base.sha }}
           echo "BASE_SHA=$BASE_SHA" >> $GITHUB_OUTPUT
           echo "change to SHA: $BASE_SHA"
+
       - name: Clean Working Directory (Prevent Stash/Commit Error)
         run: |
           # Discard all changes in tracked files
@@ -108,34 +108,15 @@ jobs:
           # Remove untracked files and directories (-d) with force (-f)
           git clean -df
           echo "Working directory cleaned." 
-      - name: Checkout a la Rama Base
-        run: |
-          git checkout ${{ steps.get_base_sha.outputs.BASE_SHA }}
-          echo "Listo. Nos encontramos en la rama: $(git branch --show-current)"
-
-      - name: Setup workflow context for Base Branch
-        id: workflow-base
-        working-directory: ${{ runner.temp }}
-        env:
-          REPO: ${{ github.repository }}
-          PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
-        run: |
-          mkdir dist_base
-          echo "DIST=${PWD}/dist_base" >> "$GITHUB_OUTPUT"
-          echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"
-
-      - name: Install PHP Dependencies
-        run: composer install --no-progress --no-dev --optimize-autoloader --prefer-dist
-
-      - name: NPM Install
-        run: npm install --legacy-peer-deps
 
       - name: Build JavaScript
         run: npm run build
+
       - name: Prepare files for Base Branch
         env:
           DIST: ${{ steps.workflow-base.outputs.DIST }}
         run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST"  
+
       - name: Calculate Total Plugin Size for Base Branch
         id: base_plugin_size
         run: |
@@ -147,6 +128,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}" 
           
       - name: Compare Plugin Sizes
+        id: compare_plugin_sizes
         if: github.event_name == 'pull_request'
         env:
           CURRENT_SIZE_BYTES: ${{ steps.plugin_size.outputs.total_size_bytes }}
