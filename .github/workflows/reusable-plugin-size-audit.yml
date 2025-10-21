@@ -111,9 +111,9 @@ jobs:
           cd "$DIST"
           SIZE_HUMAN=$(du -sh "$ZIP_PATH" | cut -f1)
           SIZE_BYTES=$(du -sb "$ZIP_PATH" | cut -f1)
-          echo "::notice file=$ZIP_PATH::Zip file created with size: $SIZE_HUMAN ($SIZE_BYTES bytes)"
-          if [ $SIZE_BYTES -gt $(( ${{ env.MAX_ZIP_SIZE_MB }} * 1024 * 1024 )) ]; then
-            echo "::error file=$ZIP_PATH::Zip file size $SIZE_HUMAN exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
+          echo "::notice file=${ZIP_PATH}::Zip file created with size: ${SIZE_HUMAN} (${SIZE_BYTES} bytes)"
+          if [ "$SIZE_BYTES" -gt $(( ${{ env.MAX_ZIP_SIZE_MB }} * 1024 * 1024 )) ]; then
+            echo "::error file=${ZIP_PATH}::Zip file size ${SIZE_HUMAN} exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
             exit 1
           fi
           {
