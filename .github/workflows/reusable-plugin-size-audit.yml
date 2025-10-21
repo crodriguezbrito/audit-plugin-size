@@ -95,14 +95,15 @@ jobs:
         id: create_zip
         working-directory: ${{ steps.workflow.outputs.DIST }}
         env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
           PACKAGE: ${{ steps.workflow.outputs.PACKAGE }}
         run: |
+          cd "$DIST"
           zip -r "$PACKAGE.zip" .
           echo "ZIP_PATH=$PACKAGE.zip" >> $GITHUB_OUTPUT
 
       - name: Calculate Zip Size
         id: zip_size
-        working-directory: ${{ steps.workflow.outputs.DIST }}
         env:
           PACKAGE: ${{ steps.workflow.outputs.PACKAGE }}
           ZIP_PATH: ${{ steps.create_zip.outputs.ZIP_PATH }}
@@ -122,10 +123,10 @@ jobs:
       - name: Retrieve Base Branch
         if: github.event_name == 'pull_request'
         id: get_base_sha
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          BASE_SHA=${{ github.event.pull_request.base.sha }}
           echo "BASE_SHA=$BASE_SHA" >> $GITHUB_OUTPUT
-          echo "Changing to SHA: $BASE_SHA"
 
       - name: Clean Working Directory
         if: github.event_name == 'pull_request'
@@ -136,9 +137,11 @@ jobs:
 
       - name: Checkout base branch
         if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ steps.get_base_sha.outputs.BASE_SHA }}
         run: |
-          git checkout ${{ steps.get_base_sha.outputs.BASE_SHA }}
-          echo "Checked out base branch at SHA: ${{ steps.get_base_sha.outputs.BASE_SHA }}"
+          git checkout "$BASE_SHA"
+          echo "Checked out base branch at SHA: $BASE_SHA"
 
       - name: Setup workflow context for Base Branch
         if: github.event_name == 'pull_request'
