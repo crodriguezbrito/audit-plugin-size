@@ -123,6 +123,15 @@ jobs:
           mkdir dist_base
           echo "DIST=${PWD}/dist_base" >> "$GITHUB_OUTPUT"
           echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Install PHP Dependencies
+        run: composer install --no-progress --no-dev --optimize-autoloader --prefer-dist
+
+      - name: NPM Install
+        run: npm install --legacy-peer-deps
+
+      - name: Build JavaScript
+        run: npm run build
       - name: Prepare files for Base Branch
         env:
           DIST: ${{ steps.workflow-base.outputs.DIST }}
