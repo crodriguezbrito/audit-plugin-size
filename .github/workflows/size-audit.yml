@@ -84,7 +84,7 @@ jobs:
         id: plugin_size
         run: |
           TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${TOTAL_SIZE_BYTES}")
+          TOTAL_SIZE_HUMAN=$(du -sh "${{TOTAL_SIZE_BYTES}}" | cut -f1)")
           {
             echo "total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "total_size_human=${TOTAL_SIZE_HUMAN}"
@@ -135,7 +135,7 @@ jobs:
         id: base_plugin_size
         run: |
           TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(numfmt --to=iec --suffix=B "${TOTAL_SIZE_BYTES}")
+          TOTAL_SIZE_HUMAN=$(du -sh "${{TOTAL_SIZE_BYTES}}" | cut -f1)")
           {
             echo "base_total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "base_total_size_human=${TOTAL_SIZE_HUMAN}"
@@ -174,11 +174,11 @@ jobs:
         run: |
             REPORT="final-report.md"
             {
-              echo "## Plugin Size Audit Report"
+              echo "## Size Audit Report"
               echo
               echo "### Total Plugin Size"
-              echo "- Current Size: ${TOTAL_SIZE_HUMAN}"
-              echo "- Base Size: ${BASE_TOTAL_SIZE_HUMAN}"
+              echo "- Current branch size: ${TOTAL_SIZE_HUMAN}"
+              echo "- Branch base size: ${BASE_TOTAL_SIZE_HUMAN}"
               echo "- Percentage Increase: ${PERCENT_INCREASE}%"
             } > "${REPORT}"
 
