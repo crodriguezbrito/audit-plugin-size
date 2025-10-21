@@ -1,4 +1,4 @@
-name: Plugin Size and Asset Audit
+name: Audit Plugin Size
 
 on:
   pull_request:
@@ -8,12 +8,11 @@ on:
 
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
-  MAX_IMAGE_SIZE_KB: 500
-  MAX_PHP_SIZE_INCREASE_PERCENT: 15
+  MAX_ZIP_SIZE_MB: 10
 
 jobs:
   size-audit:
-    name: Audit Plugin Size and Assets
+    name: Audit Plugin Size
     runs-on: ubuntu-latest
     permissions: {
       contents: read,
@@ -25,6 +24,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+
       - name: Setup PHP
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f  # v2.35.5
         with:
@@ -89,6 +89,37 @@ jobs:
             echo "total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "total_size_human=${TOTAL_SIZE_HUMAN}"
           } >> "${GITHUB_OUTPUT}"
+
+      - name: Create Zip
+        id: create_zip
+        working-directory: ${{ steps.workflow.outputs.DIST }}
+        env:
+          PACKAGE: ${{ steps.workflow.outputs.PACKAGE }}
+        run: |
+          # Create the zip file
+          zip -r "$PACKAGE.zip" .
+          echo "ZIP_PATH=$PACKAGE.zip" >> $GITHUB_OUTPUT
+
+      - name: Calculate Zip Size
+        id: zip_size
+        working-directory: ${{ steps.workflow.outputs.DIST }}
+        env:
+          PACKAGE: ${{ steps.workflow.outputs.PACKAGE }}
+        run: |
+          ZIP_FILE="${{ steps.create_zip.outputs.ZIP_PATH }}"
+          SIZE_HUMAN=$(du -sh "$ZIP_FILE" | cut -f1)
+          SIZE_BYTES=$(du -sb "$ZIP_FILE" | cut -f1)
+          
+          echo "::notice file=$ZIP_FILE::Zip file created with size: $SIZE_HUMAN ($SIZE_BYTES bytes)"
+
+          if [ $SIZE_BYTES -gt $(( ${{ env.MAX_ZIP_SIZE_MB }} * 1024 * 1024 )) ]; then
+            echo "::error file=$ZIP_FILE::Zip file size $SIZE_HUMAN exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
+            exit 1
+          fi
+          
+          # Output the sizes so they can be used in subsequent steps
+          echo "SIZE_HUMAN=$SIZE_HUMAN" >> $GITHUB_OUTPUT
+          echo "SIZE_BYTES=$SIZE_BYTES" >> $GITHUB_OUTPUT
 
       # -------------------------------------------------------
       # Calculate Total plugin size from the base branch for comparison
@@ -170,6 +201,7 @@ jobs:
             TOTAL_SIZE_HUMAN: ${{ steps.plugin_size.outputs.total_size_human }}
             PERCENT_INCREASE: ${{ steps.compare_plugin_sizes.outputs.PERCENT_INCREASE }}
             BASE_TOTAL_SIZE_HUMAN: ${{ steps.base_plugin_size.outputs.base_total_size_human }}
+            ZIP_SIZE_HUMAN: ${{ steps.zip_size.outputs.SIZE_HUMAN }}
             
         run: |
             REPORT="final-report.md"
@@ -180,6 +212,7 @@ jobs:
               echo "- Current branch size: ${TOTAL_SIZE_HUMAN}"
               echo "- Branch base size: ${BASE_TOTAL_SIZE_HUMAN}"
               echo "- Percentage Increase: ${PERCENT_INCREASE}%"
+              echo "- Zip file size: ${ZIP_SIZE_HUMAN}"
             } > "${REPORT}"
 
       - name: Comment PR
