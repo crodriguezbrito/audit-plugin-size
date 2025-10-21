@@ -81,9 +81,11 @@ jobs:
 
       - name: Calculate Total Plugin Size
         id: plugin_size
+        env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
-          TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(du -sh "${{ steps.workflow.outputs.DIST }}" | cut -f1)
+          TOTAL_SIZE_BYTES=$(du -sb "$DIST" | cut -f1)
+          TOTAL_SIZE_HUMAN=$(du -sh "$DIST" | cut -f1)
           {
             echo "total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "total_size_human=${TOTAL_SIZE_HUMAN}"
@@ -103,15 +105,14 @@ jobs:
         working-directory: ${{ steps.workflow.outputs.DIST }}
         env:
           PACKAGE: ${{ steps.workflow.outputs.PACKAGE }}
+          ZIP_PATH: ${{ steps.create_zip.outputs.ZIP_PATH }}
         run: |
-          ZIP_FILE="${{ steps.create_zip.outputs.ZIP_PATH }}"
-          SIZE_HUMAN=$(du -sh "$ZIP_FILE" | cut -f1)
-          SIZE_BYTES=$(du -sb "$ZIP_FILE" | cut -f1)
+          SIZE_HUMAN=$(du -sh "$ZIP_PATH" | cut -f1)
+          SIZE_BYTES=$(du -sb "$ZIP_PATH" | cut -f1)
           
-          echo "::notice file=$ZIP_FILE::Zip file created with size: $SIZE_HUMAN ($SIZE_BYTES bytes)"
-
+          echo "::notice file=$ZIP_PATH::Zip file created with size: $SIZE_HUMAN ($SIZE_BYTES bytes)"
           if [ $SIZE_BYTES -gt $(( ${{ env.MAX_ZIP_SIZE_MB }} * 1024 * 1024 )) ]; then
-            echo "::error file=$ZIP_FILE::Zip file size $SIZE_HUMAN exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
+            echo "::error file=$ZIP_PATH::Zip file size $SIZE_HUMAN exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
             exit 1
           fi
           
@@ -172,9 +173,11 @@ jobs:
       - name: Calculate Total Plugin Size for Base Branch
         if: github.event_name == 'pull_request'
         id: base_plugin_size
+        env:
+          DIST: ${{ steps.workflow-base.outputs.DIST }}
         run: |
-          TOTAL_SIZE_BYTES=$(du -sb "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
-          TOTAL_SIZE_HUMAN=$(du -sh "${{ steps.workflow-base.outputs.DIST }}" | cut -f1)
+          TOTAL_SIZE_BYTES=$(du -sb "$DIST" | cut -f1)
+          TOTAL_SIZE_HUMAN=$(du -sh "$DIST" | cut -f1)
           {
             echo "base_total_size_bytes=${TOTAL_SIZE_BYTES}"
             echo "base_total_size_human=${TOTAL_SIZE_HUMAN}"
