@@ -93,7 +93,7 @@ jobs:
       # -------------------------------------------------------
       # Calculate Total plugin size from the base branch for comparison
       # -------------------------------------------------------
-      - name: Checkout Base Branch
+      - name: Retrieve Base Branch
         if: github.event_name == 'pull_request'
         id: get_base_sha
         run: |
@@ -109,6 +109,20 @@ jobs:
           git clean -df
           echo "Working directory cleaned." 
 
+      - name: Checkout base branch
+        run: |
+          git checkout ${{ steps.get_base_sha.outputs.BASE_SHA }}
+          echo "Listo. Nos encontramos en la rama: $(git branch --show-current)"
+      - name: Setup workflow context for Base Branch
+        id: workflow-base
+        working-directory: ${{ runner.temp }}
+        env:
+          REPO: ${{ github.repository }}
+          PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
+        run: |
+          mkdir dist_base
+          echo "DIST=${PWD}/dist_base" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"
       - name: Build JavaScript
         run: npm run build
 
@@ -164,6 +178,7 @@ jobs:
               echo "- Base Size: ${BASE_TOTAL_SIZE_HUMAN}"
               echo "- Percentage Increase: ${PERCENT_INCREASE}%"
             } > "${REPORT}"
+            
       - name: Comment PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
