@@ -35,7 +35,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
           fetch-tags: true
-          
+
       - name: Setup PHP
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
         with:
@@ -126,7 +126,9 @@ jobs:
           echo "::notice file=${ZIP_PATH}::Zip file created with size: ${SIZE_HUMAN} (${SIZE_BYTES} bytes)"
           if [ "$SIZE_BYTES" -gt $(( ${{ env.MAX_ZIP_SIZE_MB }} * 1024 * 1024 )) ]; then
             echo "::error file=${ZIP_PATH}::Zip file size ${SIZE_HUMAN} exceeds the maximum allowed size of ${{ env.MAX_ZIP_SIZE_MB }} MB."
-            exit 1
+            echo "FAILED=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "FAILED=false" >> "${GITHUB_OUTPUT}"
           fi
           {
             echo "SIZE_HUMAN=${SIZE_HUMAN}"
@@ -208,14 +210,14 @@ jobs:
           MAX_INCREASE_PERCENT: ${{ env.MAX_SIZE_INCREASE_PERCENT }}
         run: |
           SIZE_DIFF=$((CURRENT_SIZE_BYTES - BASE_SIZE_BYTES))
-          if [ $BASE_SIZE_BYTES -eq 0 ]; then
+          if [ "$BASE_SIZE_BYTES" -eq 0 ]; then
             PERCENT_INCREASE=0
           else
             PERCENT_INCREASE=$((SIZE_DIFF * 100 / BASE_SIZE_BYTES))
           fi
           echo "Size Difference (Bytes): $SIZE_DIFF"
           echo "Percentage Increase: $PERCENT_INCREASE%"
-          if [ $PERCENT_INCREASE -gt $MAX_INCREASE_PERCENT ]; then
+          if [ "$PERCENT_INCREASE" -gt "$MAX_INCREASE_PERCENT" ]; then
             echo "::error::Plugin size increased by $PERCENT_INCREASE%, which exceeds the maximum allowed increase of $MAX_INCREASE_PERCENT%."
             echo "FAILED=true" >> "${GITHUB_OUTPUT}"
           else
@@ -291,7 +293,7 @@ jobs:
         env:
           MAX_SIZE_INCREASE_PERCENT: ${{ env.MAX_SIZE_INCREASE_PERCENT }}
           PERCENT_INCREASE: ${{ steps.compare_plugin_sizes.outputs.PERCENT_INCREASE }}
-        if: github.event_name == 'pull_request' && steps.compare_plugin_sizes.outputs.FAILED == 'true'
+        if: github.event_name == 'pull_request' && ( steps.compare_plugin_sizes.outputs.FAILED == 'true' || steps.zip_size.outputs.FAILED == 'true' )
         run: |
           echo "::error::Plugin size increased by ${PERCENT_INCREASE}%, exceeding the ${MAX_SIZE_INCREASE_PERCENT}% limit."
           exit 1
