@@ -1,11 +1,20 @@
-name: Audit Plugin Size
+name: Reusable Audit Plugin Size
 
 on:
-  pull_request:
-    branches:
-      - 'main'
-      - 'develop'
-
+  workflow_call:
+    inputs:
+      plugin-repo:
+        description: The plugin repo (newfold-labs/wp-plugin-name).
+        type: string
+        required: true
+      plugin-target-branch:
+        description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
+        type: string
+        required: true
+      plugin-source-branch:
+        description: The source (head) branch of the plugin. This is used as a starting point for the version changes. For a normal release it would be develop, but for a hotfix it would be the hotfixing branch.
+        type: string
+        required: true
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
   MAX_ZIP_SIZE_MB: 10
@@ -21,9 +30,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          persist-credentials: false
+          repository: ${{ inputs.plugin-repo }}
+          ref: ${{ inputs.plugin-source-branch }}
+          persist-credentials: true
           fetch-depth: 0
-
+          fetch-tags: true
+          
       - name: Setup PHP
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
         with:
@@ -35,7 +47,7 @@ jobs:
         id: workflow
         working-directory: ${{ runner.temp }}
         env:
-          REPO: ${{ github.repository }}
+          REPO: ${{ inputs.plugin-repo }}
           PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
         run: |
           mkdir dist
@@ -125,7 +137,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: get_base_sha
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ inputs.plugin-target-branch }}
         run: |
           echo "BASE_SHA=$BASE_SHA" >> "${GITHUB_OUTPUT}"
 
@@ -149,7 +161,7 @@ jobs:
         id: workflow-base
         working-directory: ${{ runner.temp }}
         env:
-          REPO: ${{ github.repository }}
+          REPO: ${{ inputs.plugin-repo }}
           PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
         run: |
           mkdir dist_base
