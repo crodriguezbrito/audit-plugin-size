@@ -28,7 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token}}
         with:
-          compressOnly: true
+          compressOnly: false
           jpegQuality: '82'
           pngQuality: '82'
           webpQuality: '86'
