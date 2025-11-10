@@ -2,6 +2,11 @@ name: Reusable Image Optimization
 
 on:
   workflow_call:
+    inputs:
+      githubToken:
+        description: 'GitHub Token'
+        required: true
+        type: string
 
 jobs:
   optimize-images:
@@ -26,7 +31,7 @@ jobs:
         id: image_optimization
         uses: calibreapp/image-actions@006692e15ca7d6312e06cc49b57a466d8ed45848 # Pinned to specific commit.
         with:
-          githubToken: '${{ secrets.GITHUB_TOKEN }}'
+          githubToken: '${{ inputs.githubToken }}'
           compressOnly: false
           jpegQuality: '82'
           pngQuality: '82'
