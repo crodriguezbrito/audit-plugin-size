@@ -37,6 +37,7 @@ jobs:
         if: github.event_name == 'push' && steps.image_optimization.outputs.markdown != ''
         uses: peter-evans/create-pull-request@4e1beaa7521e8b457b572c090b25bd3db56bf1c5 # v5
         with:
+          token: ${{ github.token }}
           commit-message: 'Optimize images'
           title: 'Optimize images'
           body: |
