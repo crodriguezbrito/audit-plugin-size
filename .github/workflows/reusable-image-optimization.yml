@@ -31,7 +31,7 @@ jobs:
         id: image_optimization
         uses: calibreapp/image-actions@006692e15ca7d6312e06cc49b57a466d8ed45848 # Pinned to specific commit.
         with:
-          githubToken: '${{ inputs.githubToken }}'
+          githubToken: '${{ github.token }}'
           compressOnly: false
           jpegQuality: '82'
           pngQuality: '82'
