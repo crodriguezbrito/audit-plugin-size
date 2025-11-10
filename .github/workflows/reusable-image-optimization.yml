@@ -2,12 +2,7 @@ name: Reusable Image Optimization
 
 on:
   workflow_call:
-    inputs:
-      githubToken:
-        description: 'GitHub Token'
-        required: true
-        type: string
-
+  
 jobs:
   optimize-images:
     name: Optimize Images
