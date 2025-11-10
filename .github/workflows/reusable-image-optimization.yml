@@ -24,7 +24,7 @@ jobs:
 
       - name: Image Optimization
         id: image_optimization
-        uses: calibreapp/image-actions@006692e15ca7d6312e06cc49b57a466d8ed45848 # Pinned to specific commit.
+        uses: calibreapp/image-actions@f32575787d333b0579f0b7d506ff03be63a669d1 # v1.4.1
         env:
           GITHUB_TOKEN: ${{ github.token}}
         with:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Create Pull Request
         if: github.event_name == 'push' && steps.image_optimization.outputs.markdown != ''
-        uses: peter-evans/create-pull-request@4e1beaa7521e8b457b572c090b25bd3db56bf1c5 # v5
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           token: ${{ github.token }}
           commit-message: 'Optimize images'
