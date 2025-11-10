@@ -2,16 +2,15 @@ name: Reusable Plugin Size and Asset Audit
 
 on:
   workflow_call:
-  inputs:
-    plugin-target-branch:
-      description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
-      type: string
-      required: true
-    plugin-source-branch:
-      description: The source (head) branch of the plugin. This is used as a starting point for the version changes. For a normal release it would be develop, but for a hotfix it would be the hotfixing branch.
-      type: string
-      required: true
-
+    inputs:
+      plugin-target-branch:
+        description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
+        type: string
+        required: true
+      plugin-source-branch:
+        description: The source (head) branch of the plugin. This is used as a starting point for the version changes. For a normal release it would be develop, but for a hotfix it would be the hotfixing branch.
+        type: string
+        required: true
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
   MAX_IMAGE_SIZE_KB: 500
