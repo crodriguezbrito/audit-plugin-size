@@ -116,7 +116,7 @@ jobs:
       - name: Prepare base worktree
         if: github.event_name == 'pull_request'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ inputs.plugin-target-branch }}
         run: |
           git fetch --no-tags --depth=1 origin "${BASE_SHA}"
           git worktree add base "${BASE_SHA}"
