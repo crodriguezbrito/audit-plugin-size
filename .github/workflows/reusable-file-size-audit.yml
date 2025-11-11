@@ -131,18 +131,20 @@ jobs:
 
       - name: Checkout base branch
         if: github.event_name == 'pull_request'
-        env:
-          BASE_SHA: ${{ steps.get_base_sha.outputs.BASE_SHA }}
-        run: |
-          git checkout "$BASE_SHA"
-          echo "Checked out base branch at SHA: $BASE_SHA"
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ steps.get_base_sha.outputs.BASE_SHA }}
+          clean: true
 
       - name: Setup workflow context for Base Branch
         if: github.event_name == 'pull_request'
         id: workflow-base
         working-directory: ${{ runner.temp }}
         env:
-          REPO: ${{ inputs.plugin-repo }}
+          REPO: ${{ github.repository }}
           PLUGIN_NAME: ${{ vars.PLUGIN_NAME }}
         run: |
           mkdir dist_base
@@ -164,19 +166,19 @@ jobs:
         run: npm run build
       - name: Calculate Previous Sizes (base)
         if: github.event_name == 'pull_request'
+        env:
+          DIST: ${{ steps.workflow-base.outputs.DIST }}
         id: prev
         run: |
           # Total size (exclude .git and node_modules, include vendor)
-          PREV_SIZE_BYTES=$(du -sb --exclude=.git --exclude=node_modules base | cut -f1)
-
+          PREV_SIZE_BYTES=$(du -sb --exclude=.git --exclude=node_modules "$DIST" | cut -f1)
           # PHP sizes (php files + vendor)
-          PREV_PHP_SIZE_BYTES=$(find base -name "*.php" -not -path "base/vendor/*" -not -path "base/node_modules/*" -not -path "base/.git/*" -exec du -sb {} + | awk '{sum += $1} END {print sum}')
-          PREV_VENDOR_SIZE_BYTES=$(du -sb base/vendor 2>/dev/null | cut -f1 || echo "0")
+          PREV_PHP_SIZE_BYTES=$(find "$DIST" -name "*.php" -not -path "$DIST/vendor/*" -not -path "$DIST/node_modules/*" -not -path "$DIST/.git/*" -exec du -sb {} + | awk '{sum += $1} END {print sum}')
+          PREV_VENDOR_SIZE_BYTES=$(du -sb "$DIST/vendor" 2>/dev/null | cut -f1 || echo "0")
           PREV_TOTAL_PHP_SIZE_BYTES=$((PREV_PHP_SIZE_BYTES + PREV_VENDOR_SIZE_BYTES))
 
           # JS build dir size
-          PREV_BUILD_SIZE_BYTES=$(du -sb base/build 2>/dev/null | cut -f1 || echo "0")
-
+          PREV_BUILD_SIZE_BYTES=$(du -sb "$DIST/build" 2>/dev/null | cut -f1 || echo "0")
           {
             echo "prev_total_bytes=${PREV_SIZE_BYTES}"
             echo "prev_total_php_bytes=${PREV_TOTAL_PHP_SIZE_BYTES}"
@@ -193,6 +195,8 @@ jobs:
           PREV_TOTAL_SIZE_BYTES: ${{ steps.prev.outputs.prev_total_bytes }}
           PREV_TOTAL_PHP_SIZE_BYTES: ${{ steps.prev.outputs.prev_total_php_bytes }}
           PREV_BUILD_SIZE_BYTES: ${{ steps.prev.outputs.prev_build_bytes }}
+          DIST: ${{ steps.workflow-base.outputs.DIST }}
+
         run: |
           # Compare total sizes
           CURRENT_SIZE=${CURRENT_TOTAL_SIZE_BYTES}
