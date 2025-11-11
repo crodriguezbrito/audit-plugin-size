@@ -27,6 +27,7 @@ jobs:
           git config --local --unset-all http.https://github.com/.extraheader || true
 
       - name: Image Optimization
+        if: inputs.trigger-event == 'pull_request'
         id: image_optimization
         env:
           GITHUB_EVENT_NAME: ${{ inputs.trigger-event }}
