@@ -113,26 +113,29 @@ jobs:
             echo "build_size_human=${BUILD_SIZE_HUMAN}"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Prepare base worktree
+      - name: Retrieve Base Branch
         if: github.event_name == 'pull_request'
+        id: get_base_sha
         env:
           BASE_SHA: ${{ inputs.plugin-target-branch }}
         run: |
-          git fetch --no-tags --depth=1 origin "${BASE_SHA}"
-          git worktree add base "${BASE_SHA}"
+          echo "BASE_SHA=$BASE_SHA" >> "${GITHUB_OUTPUT}"
 
-      - name: Sanitize Git credentials (base)
+      - name: Clean Working Directory
         if: github.event_name == 'pull_request'
         run: |
-          git -C base config --local --unset-all http.https://github.com/.extraheader || true
+          git reset --hard HEAD
+          git clean -df
+          echo "Working directory cleaned."
 
-      - name: Setup Node.js (base)
+      - name: Checkout base branch
         if: github.event_name == 'pull_request'
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-        with:
-          node-version-file: 'base/.nvmrc'
-          cache: npm
-
+        env:
+          BASE_SHA: ${{ steps.get_base_sha.outputs.BASE_SHA }}
+        run: |
+          git checkout "$BASE_SHA"
+          echo "Checked out base branch at SHA: $BASE_SHA"
+          
       - name: Install and build (base)
         if: github.event_name == 'pull_request'
         env:
