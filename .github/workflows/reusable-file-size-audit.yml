@@ -238,7 +238,7 @@ jobs:
           EVENT_BEFORE: ${{ github.event.before }}
           EVENT_SHA: ${{ github.sha }}
         run: |
-          REPORT="final-report.md"
+          REPORT="final-report-file-size.md"
           {
             echo "## Plugin Size Audit Report"
             echo
@@ -334,7 +334,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('final-report.md', 'utf8');
+            const report = fs.readFileSync('final-report-file-size.md', 'utf8');
 
             // Check if we already have a comment from this workflow
             const comments = await github.rest.issues.listComments({
@@ -370,5 +370,5 @@ jobs:
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: size-report-${{ github.event.repository.name }}-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
-          path: final-report.md
+          path: final-report-file-size.md
           retention-days: 90
