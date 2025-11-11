@@ -56,6 +56,9 @@ jobs:
           node-version-file: .nvmrc
       - name: Install Composer Dependencies
         uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        with:
+          dependency-versions: 'locked'
+          composer-options: '--no-dev --optimize-autoloader --prefer-dist'
 
       - name: Show versions
         run: |
