@@ -2,7 +2,11 @@ name: Reusable Image Optimization
 
 on:
   workflow_call:
-
+    inputs:
+      trigger-event:
+        description: 'The event that triggered the workflow'
+        required: true
+        type: string
 jobs:
   optimize-images:
     name: Optimize Images
