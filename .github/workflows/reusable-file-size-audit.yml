@@ -7,10 +7,18 @@ on:
         description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
         type: string
         required: true
-      plugin-source-branch:
-        description: The source (head) branch of the plugin. This is used as a starting point for the version changes. For a normal release it would be develop, but for a hotfix it would be the hotfixing branch.
-        type: string
+      repo-name:
+        description: 'The name of the repository'
         required: true
+        type: string
+      repo-before:
+        description: 'The commit SHA before the current commit'
+        required: true
+        type: string
+      repo-sha:
+        description: 'The current commit SHA'
+        required: true
+        type: string
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
   MAX_IMAGE_SIZE_KB: 500
@@ -238,9 +246,9 @@ jobs:
           PHP_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.php_increase_percent }}
           BUILD_SIZE_HUMAN: ${{ steps.js_size.outputs.build_size_human }}
           JS_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.js_increase_percent }}
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_BEFORE: ${{ github.event.before }}
-          EVENT_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ inputs.repo-name }}
+          EVENT_BEFORE: ${{ inputs.repo-before }}
+          EVENT_SHA: ${{ inputs.repo-sha }}
         run: |
           REPORT="final-report-file-size.md"
           {
