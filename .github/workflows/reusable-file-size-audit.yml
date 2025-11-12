@@ -318,7 +318,7 @@ jobs:
 
           # Only show largest files when relevant file types are modified
           
-          if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BEFORE}" "${EVENT_SHA}" | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
+          if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BEFORE}" "${EVENT_SHA}" -- | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
             {
               echo
               echo "### Largest PHP Files"
