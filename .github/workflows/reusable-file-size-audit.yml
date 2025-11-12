@@ -288,6 +288,9 @@ jobs:
           fi
 
           # Only show largest files when relevant file types are modified
+          echo ${EVENT_NAME};
+          echo ${EVENT_BEFORE};
+          echo ${EVENT_SHA};
           if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BEFORE}" "${EVENT_SHA}" | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
             {
               echo
