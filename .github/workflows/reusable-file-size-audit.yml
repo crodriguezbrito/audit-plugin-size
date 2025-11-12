@@ -95,6 +95,8 @@ jobs:
 
       - name: Calculate Total Plugin Size
         id: plugin_size
+        env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           TOTAL_SIZE_BYTES=$(du -sb "$DIST" | cut -f1)
           TOTAL_SIZE_HUMAN=$(du -sh "$DIST" | cut -f1)
@@ -105,6 +107,8 @@ jobs:
 
       - name: Calculate PHP Size
         id: php_size
+        env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           # Calculate PHP file sizes (excluding vendor; added back in the final calculation)
           PHP_SIZE_BYTES=$(find "$DIST" -name "*.php" -not -path "$DIST/vendor/*" -not -path "$DIST/base/*" -not -path "$DIST/node_modules/*" -not -path "$DIST/.git/*" -exec du -sb {} + | awk '{sum += $1} END {print sum}')
@@ -129,6 +133,8 @@ jobs:
 
       - name: Calculate JavaScript Size
         id: js_size
+        env:
+          DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           # Calculate build directory size (JavaScript/CSS assets)
           BUILD_SIZE_BYTES=$(du -sb "$DIST/build" 2>/dev/null | cut -f1 || echo "0")
