@@ -3,19 +3,15 @@ name: Reusable Plugin Size and Asset Audit
 on:
   workflow_call:
     inputs:
-      plugin-target-branch:
+      base-branch:
         description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
         type: string
         required: true
-      repo-name:
-        description: 'The name of the repository'
-        required: true
-        type: string
-      repo-base-sha:
+      base-sha:
         description: 'The commit SHA before the current commit'
         required: true
         type: string
-      repo-sha:
+      head-sha:
         description: 'The current commit SHA'
         required: true
         type: string
@@ -51,7 +47,7 @@ jobs:
           coverage: none
           tools: composer
 
-      - name: Setup workflow context
+      - name: Create temporary directory for analysis
         id: workflow
         working-directory: ${{ runner.temp }}
         env:
@@ -86,7 +82,7 @@ jobs:
       - name: Build assets
         run: npm run build
 
-      - name: Prepare files for analysis
+      - name: Prepare files for analysis on temporary directory
         env:
           DIST: ${{ steps.workflow.outputs.DIST }}
         run: rsync -r --include-from=.distinclude --exclude-from=.distignore . "$DIST"
@@ -148,7 +144,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: get_base_sha
         env:
-          BASE_SHA: ${{ inputs.plugin-target-branch }}
+          BASE_SHA: ${{ inputs.base-branch }}
         run: |
           echo "BASE_SHA=$BASE_SHA" >> "${GITHUB_OUTPUT}"
 
@@ -169,7 +165,7 @@ jobs:
           ref: ${{ steps.get_base_sha.outputs.BASE_SHA }}
           clean: true
 
-      - name: Setup workflow context for Base Branch
+      - name: Create temporary directory for Base Branch
         if: github.event_name == 'pull_request'
         id: workflow-base
         working-directory: ${{ runner.temp }}
@@ -195,7 +191,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npm run build
 
-      - name: Prepare files for Base Branch
+      - name: Prepare files for analysis on temporary directory for Base Branch
         if: github.event_name == 'pull_request'
         env:
           DIST: ${{ steps.workflow-base.outputs.DIST }}
@@ -275,9 +271,8 @@ jobs:
           PHP_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.php_increase_percent }}
           BUILD_SIZE_HUMAN: ${{ steps.js_size.outputs.build_size_human }}
           JS_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.js_increase_percent }}
-          EVENT_NAME: ${{ inputs.repo-name }}
-          EVENT_BASE_SHA: ${{ inputs.repo-base-sha }}
-          EVENT_SHA: ${{ inputs.repo-sha }}
+          EVENT_BASE_SHA: ${{ inputs.base-sha }}
+          EVENT_SHA: ${{ inputs.head-sha }}
           DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           REPORT="final-report-file-size.md"
