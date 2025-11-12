@@ -278,6 +278,7 @@ jobs:
           EVENT_NAME: ${{ inputs.repo-name }}
           EVENT_BASE_SHA: ${{ inputs.repo-base-sha }}
           EVENT_SHA: ${{ inputs.repo-sha }}
+          DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           REPORT="final-report-file-size.md"
           {
@@ -318,21 +319,19 @@ jobs:
 
           # Only show largest files when relevant file types are modified
           
-          if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BASE_SHA}" "${EVENT_SHA}" -- | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
-            {
-              echo
-              echo "### Largest PHP Files"
-              find . -name "*.php" -not -path "./base/*" -not -path "./vendor/*" -not -path "./node_modules/*" -not -path "./.git/*" -exec du -h {} + | sort -rh | head -n 10
-
-              echo
-              echo "### Largest Vendor Dependencies"
-              find vendor -type f -name "*.php" -not -path "./base/*" -exec du -h {} + | sort -rh | head -n 10
-
-              echo
-              echo "### Largest Files Overall"
-              find . -type f -not -path "*/base/*" -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/vendor/*" -exec du -h {} + | sort -rh | head -n 10
-            } >> "${REPORT}"
-          fi
+          {
+            echo
+            echo "### Largest PHP Files"
+            find $DIST -name "*.php" -not -path "$DIST/vendor/*" -not -path "$DIST/base/*" -not -path "$DIST/node_modules/*" -not -path "$DIST/.git/*" -exec du -h {} + | sort -rh | head -n 10
+            echo
+            echo "### Largest Vendor Dependencies"
+            find $DIST/vendor -type f -name "*.js" -not -path "$DIST/base/*" -exec du -h {} + | sort -rh | head -n 10
+            echo
+            echo "### Largest Files Overall"
+            find . -type f -not -path "*/base/*" -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/vendor/*" -exec du -h {} + | sort -rh | head -n 10
+            find $DIST -type f -not -path "*/base/*" -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/vendor/*" -exec du -h {} + | sort -rh | head -n 10
+          } >> "${REPORT}"
+        
 
       - name: Enforce thresholds
         if: github.event_name == 'pull_request'
