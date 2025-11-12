@@ -11,7 +11,7 @@ on:
         description: 'The name of the repository'
         required: true
         type: string
-      repo-before:
+      repo-base-sha:
         description: 'The commit SHA before the current commit'
         required: true
         type: string
@@ -276,7 +276,7 @@ jobs:
           BUILD_SIZE_HUMAN: ${{ steps.js_size.outputs.build_size_human }}
           JS_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.js_increase_percent }}
           EVENT_NAME: ${{ inputs.repo-name }}
-          EVENT_BEFORE: ${{ inputs.repo-before }}
+          EVENT_BASE_SHA: ${{ inputs.repo-base-sha }}
           EVENT_SHA: ${{ inputs.repo-sha }}
         run: |
           REPORT="final-report-file-size.md"
@@ -318,7 +318,7 @@ jobs:
 
           # Only show largest files when relevant file types are modified
           
-          if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BEFORE}" "${EVENT_SHA}" -- | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
+          if [ "${EVENT_NAME}" = "push" ] || git diff --name-only "${EVENT_BASE_SHA}" "${EVENT_SHA}" -- | grep -E '\\.(php|js|css|json|lock)$' > /dev/null; then
             {
               echo
               echo "### Largest PHP Files"
