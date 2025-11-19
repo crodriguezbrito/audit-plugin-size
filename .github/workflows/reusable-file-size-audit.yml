@@ -28,12 +28,15 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
           SHA: ${{ github.sha }}
+          FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           git config --local --unset-all http.https://github.com/.extraheader || true
-          
           echo "Head Branch: $HEAD_REF"
           echo "Commit SHA: $SHA"
           echo "Base Branch: $BASE_REF"
+          echo "Full Repo Name: $FULL_NAME"
+          echo "Repository: $REPOSITORY"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
