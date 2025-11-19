@@ -23,12 +23,17 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Sanitize Git credentials
+      - name: Sanitize Git credentials and Debug
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          SHA: ${{ github.sha }}
         run: |
           git config --local --unset-all http.https://github.com/.extraheader || true
-          echo ${github.head_ref};
-          echo ${github.sha};
-          echo ${github.base_ref};
+          
+          echo "Head Branch: $HEAD_REF"
+          echo "Commit SHA: $SHA"
+          echo "Base Branch: $BASE_REF"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
