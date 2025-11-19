@@ -2,27 +2,6 @@ name: Reusable Plugin Size and Asset Audit
 
 on:
   workflow_call:
-    inputs:
-      base-branch:
-        description: The target (base) branch of the plugin. This is used as the target branch for the pull request.
-        type: string
-        required: true
-      base-sha:
-        description: 'The commit SHA before the current commit'
-        required: true
-        type: string
-      head-sha:
-        description: 'The current commit SHA'
-        required: true
-        type: string
-      head-repo-full-name:
-        description: 'The full repository name (owner/repo) of the head repository'
-        required: true
-        type: string
-      base-repo-full-name:
-        description: 'The full repository name (owner/repo) of the base repository'
-        required: true
-        type: string
 env:
   MAX_SIZE_INCREASE_PERCENT: 10
   MAX_IMAGE_SIZE_KB: 500
@@ -152,22 +131,15 @@ jobs:
         if: github.event_name == 'pull_request'
         id: get_base_sha
         env:
-          BASE_SHA: ${{ inputs.base-branch }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           echo "BASE_SHA=$BASE_SHA" >> "${GITHUB_OUTPUT}"
-
-      - name: Clean Working Directory
-        if: github.event_name == 'pull_request'
-        run: |
-          git reset --hard HEAD
-          git clean -df
-          echo "Working directory cleaned."
 
       - name: Checkout base branch
         if: github.event_name == 'pull_request'
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
-          persist-credentials: true
+          persist-credentials: false
           fetch-depth: 0
           fetch-tags: true
           ref: ${{ steps.get_base_sha.outputs.BASE_SHA }}
@@ -192,11 +164,11 @@ jobs:
           composer-options: '--no-dev --optimize-autoloader --prefer-dist'
 
       - name: NPM Install for Base Branch
-        if: inputs.head-repo-full-name == github.repository && github.repository_owner == 'newfold-labs' && github.event_name == 'pull_request'
+        if: github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'pull_request'
         run: npm ci --ignore-scripts
 
       - name: Build JavaScript for Base Branch
-        if: inputs.head-repo-full-name == github.repository && github.repository_owner == 'newfold-labs' && github.event_name == 'pull_request'
+        if: github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'pull_request'
         run: npm run build
 
       - name: Prepare files for analysis on temporary directory for Base Branch
@@ -279,8 +251,6 @@ jobs:
           PHP_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.php_increase_percent }}
           BUILD_SIZE_HUMAN: ${{ steps.js_size.outputs.build_size_human }}
           JS_INCREASE_PERCENT: ${{ steps.size_comparison.outputs.js_increase_percent }}
-          EVENT_BASE_SHA: ${{ inputs.base-sha }}
-          EVENT_SHA: ${{ inputs.head-sha }}
           DIST: ${{ steps.workflow.outputs.DIST }}
         run: |
           REPORT="final-report-file-size.md"
