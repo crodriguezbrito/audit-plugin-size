@@ -137,11 +137,11 @@ jobs:
 
       - name: Retrieve Base Branch
         if: github.event_name == 'pull_request'
-        id: get_base_sha
+        id: get_base_ref
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          echo "BASE_SHA=$BASE_SHA" >> "${GITHUB_OUTPUT}"
+          echo "BASE_REF=$BASE_REF" >> "${GITHUB_OUTPUT}"
 
       - name: Checkout base branch
         if: github.event_name == 'pull_request'
@@ -150,7 +150,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ steps.get_base_sha.outputs.BASE_SHA }}
+          ref: ${{ steps.get_base_ref.outputs.BASE_REF }}
           clean: true
 
       - name: Create temporary directory for Base Branch
